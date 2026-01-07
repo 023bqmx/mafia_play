@@ -120,12 +120,85 @@
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* --- Golden Flow Loader (ม่านทองคำ) --- */
+        #leaderboard-loader {
+    position: fixed; /* เปลี่ยนเป็น fixed เพื่อให้ยึดกับหน้าจอ ไม่ใช่ยึดกับกล่อง */
+    top: 0; left: 0; width: 100vw; height: 100vh; /* ใช้ vw, vh เพื่อความชัวร์ */
+    background-color: #050505;
+    z-index: 9999; /* เลขเยอะๆ เพื่อให้ทับทุกอย่าง */
+    display: none; /* ซ่อนไว้ก่อน เดี๋ยว JS สั่งเปิดเอง */
+    flex-direction: column;
+    justify-content: center; align-items: center;
+    overflow: hidden;
+    transition: opacity 0.5s ease-out;
+}
+
+        /* ตัวสร้างเอฟเฟกต์ไหลลง */
+        .gold-curtain {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, 
+                transparent 0%, 
+                rgba(255, 215, 0, 0.05) 20%, 
+                rgba(255, 215, 0, 0.4) 50%, 
+                rgba(255, 215, 0, 0.05) 80%, 
+                transparent 100%
+            );
+            background-size: 100% 200%;
+            animation: flowDown 1.5s linear infinite;
+            pointer-events: none;
+        }
+        
+        /* เส้นแสงวิ่งแทรก */
+        .gold-scanline {
+            position: absolute;
+            left: 0; width: 100%; height: 2px;
+            background: #FFD700;
+            box-shadow: 0 0 15px #FFD700, 0 0 30px #FFD700;
+            opacity: 0.6;
+            animation: scanMove 1.5s ease-in-out infinite;
+        }
+
+        @keyframes flowDown {
+            0% { background-position: 0% 200%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        @keyframes scanMove {
+            0% { top: -10%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 110%; opacity: 0; }
+        }
+
+        .loader-text {
+            position: relative;
+            z-index: 10;
+            color: #FFD700;
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: textPulse 1s infinite alternate;
+        }
+
+        @keyframes textPulse {
+            from { opacity: 0.6; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1.02); }
+        }
     </style>
 </head>
 <body class="min-h-screen relative pb-24 text-gray-200">
 
     <div id="splash-screen">
-        <i class="fas fa-coins splash-icon"></i>
+        <div class="w-40 h-40 relative mb-6">
+    <div class="absolute inset-0 bg-yellow-500 blur-xl opacity-20 rounded-full animate-pulse"></div>
+    <div class="w-full h-full rounded-full border-4 border-yellow-500/50 overflow-hidden shadow-[0_0_30px_rgba(255,215,0,0.3)] relative z-10 bg-black">
+        <img src="logomafia.jpg" class="w-full h-full object-cover" alt="Logo">
+    </div>
+</div>
         <h1 class="text-2xl font-bold mt-4 text-yellow-500 tracking-widest">𝐓𝐇𝐄 𝐇𝐈𝐆𝐇 𝐓𝐀𝐁𝐋𝐄</h1>
         <div class="click-to-enter">แตะเพื่อเข้าสู่ระบบบัญชี</div>
     </div>
@@ -133,9 +206,12 @@
     <header class="glass-header sticky top-0 z-40">
         <div class="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-600 to-yellow-400 flex items-center justify-center text-black shadow-lg shadow-yellow-900/50">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                </div>
+                <div class="relative group">
+    <div class="absolute -inset-1 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+    <div class="relative w-12 h-12 rounded-full ring-2 ring-yellow-500/50 overflow-hidden shadow-lg bg-black">
+        <img src="logomafia.jpg" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Family Logo">
+    </div>
+</div>
                 <div>
                     <h1 class="text-base font-bold text-yellow-500 tracking-wide">บัญชีการเงิน</h1>
                     <p class="text-[10px] text-gray-500 uppercase tracking-widest">Mafia Financial Ledger</p>
@@ -227,17 +303,26 @@
             <div id="history-list" class="space-y-3 pb-20"></div>
         </section>
 
-        <section id="sec-leaderboard" class="hidden-section pb-24">
+        <section id="sec-leaderboard" class="hidden-section pb-24 relative min-h-[60vh]">
+            
+            <div id="leaderboard-loader">
+                <div class="gold-curtain"></div>
+                <div class="gold-scanline"></div>
+                
+                <div class="loader-text">
+                    <i class="fas fa-search-dollar mr-2"></i> LOADING
+                </div>
+                <div class="text-xs text-yellow-600 mt-2 tracking-widest opacity-70">กำลังดึงข้อมูลบัญชีลับ...</div>
+            </div>
+
             <div class="relative bg-gradient-to-br from-yellow-600 to-yellow-800 rounded-3xl p-6 text-black mb-6 shadow-xl overflow-hidden mt-2 mx-1 border border-yellow-500/30">
                 <div class="relative z-10 flex justify-between items-end">
                     <div>
                         <h2 class="text-2xl font-bold mb-1">ทำเนียบเศรษฐี</h2>
-                        <p class="text-yellow-900 text-sm font-semibold opacity-80">ผู้มียอดเหรียญทองสุทธิสูงสุดในบัญชี</p>
+                        <p class="text-yellow-900 text-sm font-semibold opacity-80">ผู้มียอดเหรียญทองสุทธิสูงสุด</p>
                     </div>
                     <i class="fas fa-crown text-4xl text-yellow-300 opacity-60 transform rotate-12 drop-shadow-md"></i>
                 </div>
-                <div class="absolute top-2 left-10 w-1 h-1 bg-white rounded-full animate-ping"></div>
-                <div class="absolute bottom-10 right-20 w-1 h-1 bg-white rounded-full animate-ping" style="animation-delay: 0.5s"></div>
             </div>
             
             <div class="px-1">
@@ -476,67 +561,78 @@
         }
 
         function loadLeaderboard() {
+            const loader = document.getElementById('leaderboard-loader');
             const list = document.getElementById('leaderboard-list');
-            // Skeleton Loading แบบ Dark Mode
-            list.innerHTML = `<div class="text-center py-10 animate-pulse space-y-3">
-                <div class="w-12 h-12 bg-gray-800 rounded-full mx-auto"></div>
-                <div class="h-4 bg-gray-800 rounded w-1/2 mx-auto"></div>
-                <div class="h-3 bg-gray-800 rounded w-1/3 mx-auto"></div>
-            </div>`;
+            
+            // 1. เปิด Loader
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+            list.innerHTML = ""; // เคลียร์ของเก่า
 
-            fetch(`${SCRIPT_URL}?action=leaderboard`)
-            .then(res => res.json())
-            .then(data => {
-                list.innerHTML = "";
-                if (data.length === 0) {
-                    list.innerHTML = `<div class="text-center text-gray-600 py-10">บัญชีว่างเปล่า</div>`;
-                    return;
-                }
-                data.forEach((item, index) => {
-                    let rankStyle = "bg-[#1a1a1a] border-gray-800";
-                    let rankIcon = `<span class="text-gray-600 font-bold text-lg font-mono">#${index+1}</span>`;
-                    let containerClass = "";
-                    let textColor = "text-gray-300";
-                    
-                    // อันดับ 1
-                    if(index === 0) {
-                        rankStyle = "bg-gradient-to-r from-yellow-900/40 to-black border-yellow-600/50 shadow-lg shadow-yellow-900/20";
-                        rankIcon = `<div class="w-10 h-10 rounded-full bg-gradient-to-b from-yellow-400 to-yellow-600 flex items-center justify-center text-black text-xl shadow-lg shadow-yellow-500/50"><i class="fas fa-crown"></i></div>`;
-                        containerClass = "transform scale-105 my-4 z-10";
-                        textColor = "text-yellow-100";
-                    } 
-                    // อันดับ 2
-                    else if(index === 1) {
-                        rankIcon = `<div class="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-black font-bold shadow">2</div>`;
-                    } 
-                    // อันดับ 3
-                    else if(index === 2) {
-                        rankIcon = `<div class="w-8 h-8 rounded-full bg-orange-700 flex items-center justify-center text-black font-bold shadow">3</div>`;
-                    }
+            // 2. เริ่มโหลดข้อมูล + หน่วงเวลาให้เอฟเฟกต์เล่นอย่างน้อย 1.5 วินาที
+            const minTimePromise = new Promise(resolve => setTimeout(resolve, 1500));
+            const fetchPromise = fetch(`${SCRIPT_URL}?action=leaderboard`).then(res => res.json());
 
-                    const card = document.createElement('div');
-                    card.className = `relative flex items-center p-4 rounded-2xl border ${rankStyle} ${containerClass}`;
-                    
-                    // แสดงยอดเงิน (Net Worth)
-                    const moneyFormatted = item.netWorth.toLocaleString();
-
-                    card.innerHTML = `
-                        <div class="w-12 flex-shrink-0 flex justify-center items-center">${rankIcon}</div>
-                        <div class="flex-1 min-w-0 px-3">
-                            <div class="font-bold ${textColor} text-base truncate">${item.name}</div>
-                        </div>
-                        <div class="flex flex-col items-end gap-1 flex-shrink-0 pl-2">
-                            <div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-gray-700 min-w-[100px] justify-end">
-                                <span class="text-base font-bold text-yellow-500">${moneyFormatted}</span>
-                                <i class="fas fa-coins text-yellow-600 text-xs"></i>
-                            </div>
-                        </div>`;
-                    list.appendChild(card);
-                });
+            Promise.all([fetchPromise, minTimePromise])
+            .then(([data]) => {
+                // 3. เมื่อเสร็จแล้ว วาดตาราง
+                renderLeaderboardList(data);
+                
+                // 4. ซ่อน Loader (Fade out)
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 500);
             })
             .catch(err => {
                 console.error(err);
                 list.innerHTML = `<div class="text-center text-red-900 py-4 opacity-70">เชื่อมต่อฐานข้อมูลไม่ได้</div>`;
+                loader.style.display = 'none';
+            });
+        }
+        
+        // ฟังก์ชัน renderLeaderboardList ใช้ตัวเดิมจากรอบที่แล้วได้เลยครับ
+
+        // ฟังก์ชันวาดรายการอันดับ (แยกออกมาจากตัวเดิม)
+        function renderLeaderboardList(data) {
+            const list = document.getElementById('leaderboard-list');
+            if (data.length === 0) {
+                list.innerHTML = `<div class="text-center text-gray-600 py-10">บัญชีว่างเปล่า</div>`;
+                return;
+            }
+            data.forEach((item, index) => {
+                let rankStyle = "bg-[#1a1a1a] border-gray-800";
+                let rankIcon = `<span class="text-gray-600 font-bold text-lg font-mono">#${index+1}</span>`;
+                let containerClass = "animate-fade-in"; // เพิ่ม Animation ตอนโผล่มา
+                let textColor = "text-gray-300";
+                
+                if(index === 0) {
+                    rankStyle = "bg-gradient-to-r from-yellow-900/40 to-black border-yellow-600/50 shadow-lg shadow-yellow-900/20";
+                    rankIcon = `<div class="w-10 h-10 rounded-full bg-gradient-to-b from-yellow-400 to-yellow-600 flex items-center justify-center text-black text-xl shadow-lg shadow-yellow-500/50"><i class="fas fa-crown"></i></div>`;
+                    containerClass += " transform scale-105 my-4 z-10";
+                    textColor = "text-yellow-100";
+                } 
+                else if(index === 1) rankIcon = `<div class="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-black font-bold shadow">2</div>`;
+                else if(index === 2) rankIcon = `<div class="w-8 h-8 rounded-full bg-orange-700 flex items-center justify-center text-black font-bold shadow">3</div>`;
+
+                const card = document.createElement('div');
+                card.className = `relative flex items-center p-4 rounded-2xl border ${rankStyle} ${containerClass}`;
+                card.style.animationDelay = `${index * 0.1}s`; // ให้ค่อยๆ โผล่มาทีละอัน
+
+                const moneyFormatted = item.netWorth.toLocaleString();
+
+                card.innerHTML = `
+                    <div class="w-12 flex-shrink-0 flex justify-center items-center">${rankIcon}</div>
+                    <div class="flex-1 min-w-0 px-3">
+                        <div class="font-bold ${textColor} text-base truncate">${item.name}</div>
+                    </div>
+                    <div class="flex flex-col items-end gap-1 flex-shrink-0 pl-2">
+                        <div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-gray-700 min-w-[100px] justify-end">
+                            <span class="text-base font-bold text-yellow-500">${moneyFormatted}</span>
+                            <i class="fas fa-coins text-yellow-600 text-xs"></i>
+                        </div>
+                    </div>`;
+                list.appendChild(card);
             });
         }
 
