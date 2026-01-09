@@ -593,19 +593,23 @@
         ยอดเงินสุทธิ
         // ฟังก์ชัน renderLeaderboardList ใช้ตัวเดิมจากรอบที่แล้วได้เลยครับ
 
-        // ฟังก์ชันวาดรายการอันดับ (แยกออกมาจากตัวเดิม)
+        // ฟังก์ชันวาดรายการอันดับ (ปรับปรุง: รองรับชื่อยาว + จอมือถือ)
+        // ฟังก์ชันวาดรายการอันดับ (แก้ไขล่าสุด: ลบสถานะ + ปรับขนาดเฉพาะคนชื่อยาว)
         function renderLeaderboardList(data) {
             const list = document.getElementById('leaderboard-list');
+            
             if (data.length === 0) {
                 list.innerHTML = `<div class="text-center text-gray-600 py-10">บัญชีว่างเปล่า</div>`;
                 return;
             }
+
             data.forEach((item, index) => {
                 let rankStyle = "bg-[#1a1a1a] border-gray-800";
                 let rankIcon = `<span class="text-gray-600 font-bold text-lg font-mono">#${index+1}</span>`;
-                let containerClass = "animate-fade-in"; // เพิ่ม Animation ตอนโผล่มา
+                let containerClass = "animate-fade-in"; 
                 let textColor = "text-gray-300";
                 
+                // --- ตั้งค่าสีตามอันดับ ---
                 if(index === 0) {
                     rankStyle = "bg-gradient-to-r from-yellow-900/40 to-black border-yellow-600/50 shadow-lg shadow-yellow-900/20";
                     rankIcon = `<div class="w-10 h-10 rounded-full bg-gradient-to-b from-yellow-400 to-yellow-600 flex items-center justify-center text-black text-xl shadow-lg shadow-yellow-500/50"><i class="fas fa-crown"></i></div>`;
@@ -615,20 +619,36 @@
                 else if(index === 1) rankIcon = `<div class="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-black font-bold shadow">2</div>`;
                 else if(index === 2) rankIcon = `<div class="w-8 h-8 rounded-full bg-orange-700 flex items-center justify-center text-black font-bold shadow">3</div>`;
 
+                // --- Logic ปรับขนาดตัวอักษร (Responsive เฉพาะรายบุคคล) ---
+                const nameLen = item.name.length;
+                let nameSizeClass = "text-base"; // ค่าเริ่มต้น: ขนาดปกติ (เท่าเดิม)
+                
+                if (nameLen > 24) {
+                    nameSizeClass = "text-[15px] leading-tight"; // ยาวมากจริงๆ ถึงจะเล็กจิ๋ว
+                } else if (nameLen > 16) {
+                    nameSizeClass = "text-sm leading-tight"; // ยาวพอสมควร ให้ลดลงนิดนึง
+                }
+                // ถ้าสั้นกว่า 16 ตัวอักษร จะใช้ text-base (ขนาดปกติ) ตามเดิมครับ
+
                 const card = document.createElement('div');
-                card.className = `relative flex items-center p-4 rounded-2xl border ${rankStyle} ${containerClass}`;
-                card.style.animationDelay = `${index * 0.1}s`; // ให้ค่อยๆ โผล่มาทีละอัน
+                // ใช้ items-center เพื่อให้ชื่ออยู่กลางแนวตั้ง เพราะไม่มีบรรทัดล่างแล้ว
+                card.className = `relative flex items-center p-3 sm:p-4 rounded-2xl border ${rankStyle} ${containerClass}`;
+                card.style.animationDelay = `${index * 0.1}s`;
 
                 const moneyFormatted = item.netWorth.toLocaleString();
 
                 card.innerHTML = `
-                    <div class="w-12 flex-shrink-0 flex justify-center items-center">${rankIcon}</div>
-                    <div class="flex-1 min-w-0 px-3">
-                        <div class="font-bold ${textColor} text-base truncate">${item.name}</div>
+                    <div class="w-10 sm:w-12 flex-shrink-0 flex justify-center items-center mr-1">${rankIcon}</div>
+                    
+                    <div class="flex-1 min-w-0 px-2 flex flex-col justify-center">
+                        <div class="font-bold ${textColor} ${nameSizeClass} break-words">
+                            ${item.name}
+                        </div>
                     </div>
-                    <div class="flex flex-col items-end gap-1 flex-shrink-0 pl-2">
-                        <div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-gray-700 min-w-[100px] justify-end">
-                            <span class="text-base font-bold text-yellow-500">${moneyFormatted}</span>
+
+                    <div class="flex flex-col items-end gap-1 flex-shrink-0 pl-1">
+                        <div class="flex items-center gap-1.5 bg-black/40 px-2 py-1.5 rounded-lg border border-gray-700 min-w-[90px] justify-end">
+                            <span class="text-sm sm:text-base font-bold text-yellow-500">${moneyFormatted}</span>
                             <i class="fas fa-coins text-yellow-600 text-xs"></i>
                         </div>
                     </div>`;
