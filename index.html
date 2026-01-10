@@ -188,7 +188,138 @@
             from { opacity: 0.6; transform: scale(0.98); }
             to { opacity: 1; transform: scale(1.02); }
         }
+
+        /* --- Donate System Styles (Updated) --- */
+        
+        /* Container รวมปุ่มและคำพูด */
+        #donate-container {
+            position: fixed;
+            bottom: 24px; left: 24px;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            gap: 15px; /* ระยะห่างระหว่างปุ่มกับคำพูด */
+        }
+
+        /* ปุ่มโดเนท */
+        #donate-btn {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, #FFD700, #B8860B);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: floatBtn 3s ease-in-out infinite;
+            flex-shrink: 0; /* ห้ามปุ่มหด */
+        }
+        #donate-btn:hover { transform: scale(1.1); }
+        #donate-btn i { font-size: 24px; color: #000; }
+
+        @keyframes floatBtn {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* บอลลูนคำพูด (Thought Bubble) */
+        .donate-bubble {
+            background: #fff;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            position: relative;
+            animation: floatBubble 3s ease-in-out infinite;
+            animation-delay: 1.5s; /* ขยับคนละจังหวะกับปุ่ม */
+            white-space: nowrap;
+        }
+
+        /* หางบอลลูนชี้ไปที่ปุ่ม */
+        .donate-bubble::before {
+            content: '';
+            position: absolute;
+            left: -8px; top: 50%;
+            transform: translateY(-50%);
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-right: 8px solid #fff;
+        }
+
+        @keyframes floatBubble {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        /* Modal โดเนท */
+        #donate-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; 
+            visibility: hidden; /* ใช้ visibility ช่วยเรื่องกันคลิก */
+            transition: opacity 0.3s ease, visibility 0.3s;
+        }
+        
+        #donate-modal.active {
+            opacity: 1; 
+            visibility: visible;
+        }
+
+        /* ตัวกล่องเนื้อหา */
+        .donate-content {
+            background: #1a1a1a;
+            border: 1px solid #FFD700;
+            padding: 24px;
+            border-radius: 24px;
+            width: 90%; max-width: 320px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+            transform: scale(0.8);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+            will-change: transform, opacity; /* ช่วยให้ลื่นขึ้น */
+        }
+
+        #donate-modal.active .donate-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Animation ตอนดูดกลับ (Suck Effect) - ปรับปรุงใหม่ */
+        .sucking {
+            animation: suckEffect 0.5s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards !important;
+        }
+
+        @keyframes suckEffect {
+            0% { 
+                transform: translate(0, 0) scale(1); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translate(var(--tx), var(--ty)) scale(0.1); 
+                opacity: 0; 
+            }
+        }
+
+        .qr-placeholder {
+            width: 200px; height: 200px;
+            background: #fff;
+            margin: 0 auto 16px;
+            border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+            border: 4px solid #333;
+        }
+        .qr-placeholder img { width: 100%; height: 100%; object-fit: cover; }
+
+
     </style>
+
 </head>
 <body class="min-h-screen relative pb-24 text-gray-200">
 
@@ -355,6 +486,32 @@
                 </li>
             </ul>
             <button onclick="toggleModal()" class="w-full bg-yellow-600 text-black font-bold py-3 rounded-xl hover:bg-yellow-500 transition-colors">รับทราบ</button>
+        </div>
+    </div>
+
+    <div id="donate-container" onclick="openDonateModal()">
+        <div id="donate-btn">
+            <i class="fas fa-hand-holding-heart"></i>
+        </div>
+        <div class="donate-bubble">
+            ช่องทางสนับสนุนน้องกุนเชียง
+        </div>
+    </div>
+
+    <div id="donate-modal">
+        <div class="donate-content">
+            <button onclick="closeDonateModal(event)" class="absolute top-3 right-3 text-gray-400 hover:text-white w-8 h-8 rounded-full flex items-center justify-center bg-gray-800 z-10">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <h3 class="text-xl font-bold text-yellow-500 mb-2">สนับสนุนนักพัฒนา</h3>
+            <p class="text-xs text-gray-400 mb-4">เลี้ยงลาเต้ผมสักแก้ว เพื่อพัฒนาระบบต่อไปครับ ☕️</p>
+            
+            <div class="qr-placeholder">
+                <img src="krcode.jpg" alt="Donate QR" id="donate-qr-img">
+            </div>
+
+            <p class="text-yellow-600 text-sm font-bold">ขอบคุณที่ซัพพอร์ตครับ!</p>
         </div>
     </div>
 
@@ -666,6 +823,70 @@
                 setTimeout(() => modal.classList.add('hidden'), 200);
             }
         }
+
+        // --- Donate System Logic (Updated) ---
+
+        // ไม่มีการเช็ค localStorage หรือ setTimeout แล้ว เพราะให้กดเองเท่านั้น
+
+        function openDonateModal() {
+            const modal = document.getElementById('donate-modal');
+            const content = modal.querySelector('.donate-content');
+            
+            // ล้าง Animation เก่า และรีเซ็ตค่า
+            content.classList.remove('sucking');
+            content.style.removeProperty('--tx');
+            content.style.removeProperty('--ty');
+            content.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s'; // คืนค่า Transition ปกติ
+
+            modal.classList.add('active');
+        }
+
+        function closeDonateModal(event) {
+            // หยุด event ไม่ให้ทะลุ (เผื่อไว้)
+            if(event) event.stopPropagation();
+
+            const modal = document.getElementById('donate-modal');
+            const content = modal.querySelector('.donate-content');
+            const btn = document.getElementById('donate-btn');
+
+            // 1. คำนวณระยะทางแม่นยำขึ้น
+            const contentRect = content.getBoundingClientRect();
+            const btnRect = btn.getBoundingClientRect();
+
+            // หาจุดกึ่งกลาง
+            const contentCenterX = contentRect.left + contentRect.width / 2;
+            const contentCenterY = contentRect.top + contentRect.height / 2;
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            const btnCenterY = btnRect.top + btnRect.height / 2;
+
+            const tx = btnCenterX - contentCenterX;
+            const ty = btnCenterY - contentCenterY;
+
+            // 2. ปิด Transition ปกติก่อนเริ่ม Animation ดูดกลับ (เพื่อไม่ให้ตีกัน)
+            content.style.transition = 'none';
+
+            // 3. เริ่ม Animation
+            requestAnimationFrame(() => {
+                content.style.setProperty('--tx', `${tx}px`);
+                content.style.setProperty('--ty', `${ty}px`);
+                content.classList.add('sucking');
+            });
+
+            // 4. รอ Animation จบ (0.5s) แล้วซ่อน Modal
+            setTimeout(() => {
+                modal.classList.remove('active');
+                content.classList.remove('sucking');
+            }, 450); // ตัดเวลาให้เร็วกว่า Animation นิดนึงกันภาพกระพริบตอนจบ
+        }
+        
+        // เพิ่มฟังก์ชันปิด Modal เมื่อกดที่พื้นหลังสีดำ
+        document.getElementById('donate-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDonateModal(e);
+            }
+        });
+
+
     </script>
 </body>
 </html>
